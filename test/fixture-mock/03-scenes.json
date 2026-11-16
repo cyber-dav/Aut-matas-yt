@@ -1,0 +1,74 @@
+{
+  "title": "El hombre lobo de Allariz",
+  "chapters": [
+    {
+      "title": "El juicio",
+      "firstSceneId": 1
+    },
+    {
+      "title": "El buhonero",
+      "firstSceneId": 3
+    },
+    {
+      "title": "Cierre",
+      "firstSceneId": 5
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "chapter": "Gancho",
+      "narration": "Septiembre de mil ochocientos cincuenta y dos. En un juzgado de Allariz, un hombre pequeño y educado confiesa algo imposible.",
+      "imagePrompt": "A small provincial courtroom in 1852 Galicia, a modest man in a worn coat standing before a magistrate, candlelight",
+      "reuseImageOf": null,
+      "onScreenText": "Allariz (Ourense), 1852",
+      "camera": "zoom-in",
+      "estSeconds": 9,
+      "sfx": null
+    },
+    {
+      "id": 2,
+      "chapter": "Gancho",
+      "narration": "[pausa] Dice que no mató como un hombre, sino como un lobo.",
+      "imagePrompt": "The shadow of a wolf cast on a stone wall behind a seated man, moonlight through a barred window",
+      "reuseImageOf": null,
+      "onScreenText": null,
+      "camera": "pan-left",
+      "estSeconds": 9,
+      "sfx": null
+    },
+    {
+      "id": 3,
+      "chapter": "Contexto",
+      "narration": "Se llamaba Manuel Blanco Romasanta. Era buhonero y recorría los caminos entre Galicia y Portugal",
+      "imagePrompt": "A travelling peddler with a heavy pack walking a misty mountain road in nineteenth-century Galicia",
+      "reuseImageOf": null,
+      "onScreenText": "Manuel Blanco Romasanta",
+      "camera": "pan-right",
+      "estSeconds": 9,
+      "sfx": null
+    },
+    {
+      "id": 4,
+      "chapter": "Contexto",
+      "narration": "vendiendo telas, ungüentos y noticias.",
+      "imagePrompt": "Close view of a peddler's open pack: folded cloth, small jars of ointment, letters, on a wooden table",
+      "reuseImageOf": 3,
+      "onScreenText": null,
+      "camera": "zoom-out",
+      "estSeconds": 9,
+      "sfx": null
+    },
+    {
+      "id": 5,
+      "chapter": "Cierre",
+      "narration": "¿Monstruo, enfermo o víctima de su tiempo? Te leo en los comentarios.",
+      "imagePrompt": "A lone wolf silhouette on a ridge above a sleeping village at dawn",
+      "reuseImageOf": null,
+      "onScreenText": null,
+      "camera": "zoom-in",
+      "estSeconds": 9,
+      "sfx": null
+    }
+  ]
+}

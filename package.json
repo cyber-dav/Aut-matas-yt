@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Pipeline: tema histórico → vídeo de YouTube de ~12 min (voz ElevenLabs, ilustraciones fal, montaje Remotion)",
+  "description": "Pipeline: tema hist\u00f3rico \u2192 v\u00eddeo de YouTube de ~12 min (voz ElevenLabs, ilustraciones fal, montaje Remotion)",
   "scripts": {
     "new": "tsx src/cli/new.ts",
     "produce": "tsx src/cli/produce.ts",
     "stage": "tsx src/cli/stage.ts",
     "studio": "remotion studio remotion/index.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p remotion",
-    "test": "tsx --test src/core/*.test.ts"
+    "test": "tsx --test src/core/*.test.ts",
+    "test:e2e": "rm -rf episodes/prueba-mock && cp -r test/fixture-mock episodes/prueba-mock && PIPELINE_MOCK=1 tsx src/cli/produce.ts prueba-mock || true"
   },
   "engines": {
     "node": ">=20"

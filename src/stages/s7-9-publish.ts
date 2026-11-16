@@ -41,7 +41,7 @@ export const thumbnailsStage: Stage = {
     cost.reset("thumbnails");
     let plan: z.infer<typeof ThumbPlan>;
     if (mock()) {
-      plan = { options: [1, 2, 3].map((i) => ({ text: ["¿ASESINO O MITO?", "LA BESTIA DE ALLARIZ", "JURÓ SER LOBO"][i - 1], imagePrompt: file.scenes[i * 3].imagePrompt, align: i % 2 ? "left" : "right" })) };
+      plan = { options: [1, 2, 3].map((i) => ({ text: ["¿ASESINO O MITO?", "LA BESTIA DE ALLARIZ", "JURÓ SER LOBO"][i - 1], imagePrompt: file.scenes[(i * 3) % file.scenes.length].imagePrompt, align: i % 2 ? "left" : "right" })) };
     } else {
       const res = await generateJson(
         cfg,

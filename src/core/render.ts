@@ -30,6 +30,9 @@ export async function bundleWith(publicDir: string, files: Record<string, string
   });
 }
 
+/** Navegador opcional (REMOTION_BROWSER_EXECUTABLE); si no se indica, Remotion descarga el suyo. */
+const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
+
 export async function renderVideo(opts: {
   serveUrl: string;
   compositionId: "Episode" | "Short";
@@ -37,7 +40,7 @@ export async function renderVideo(opts: {
   out: string;
   label: string;
 }) {
-  const composition = await selectComposition({ serveUrl: opts.serveUrl, id: opts.compositionId, inputProps: opts.props });
+  const composition = await selectComposition({ serveUrl: opts.serveUrl, id: opts.compositionId, inputProps: opts.props, browserExecutable });
   ensureDir(dirname(opts.out));
   let last = -1;
   const started = Date.now();
@@ -51,7 +54,8 @@ export async function renderVideo(opts: {
     pixelFormat: "yuv420p",
     outputLocation: opts.out,
     inputProps: opts.props,
-    chromiumOptions: { gl: "swangle" },
+    browserExecutable,
+    concurrency: process.env.REMOTION_CONCURRENCY ? Number(process.env.REMOTION_CONCURRENCY) : null,
     onProgress: ({ progress }) => {
       const pct = Math.floor(progress * 100);
       if (pct >= last + 5) {
@@ -65,6 +69,6 @@ export async function renderVideo(opts: {
 }
 
 export async function renderThumb(opts: { serveUrl: string; props: Record<string, unknown>; out: string }) {
-  const composition = await selectComposition({ serveUrl: opts.serveUrl, id: "Thumbnail", inputProps: opts.props });
-  await renderStill({ composition, serveUrl: opts.serveUrl, output: opts.out, inputProps: opts.props, imageFormat: "jpeg", jpegQuality: 92 });
+  const composition = await selectComposition({ serveUrl: opts.serveUrl, id: "Thumbnail", inputProps: opts.props, browserExecutable });
+  await renderStill({ composition, serveUrl: opts.serveUrl, output: opts.out, inputProps: opts.props, browserExecutable, imageFormat: "jpeg", jpegQuality: 92 });
 }
