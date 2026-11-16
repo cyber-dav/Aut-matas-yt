@@ -1,0 +1,89 @@
+{
+  "channel": {
+    "name": "Crónicas Oscuras",
+    "tagline": "Historia oscura y misterios de España",
+    "language": "es-ES",
+    "audience": "adultos curiosos de 25 a 55 años",
+    "tone": "narrador documental, intrigante y riguroso; nunca sensacionalista ni morboso"
+  },
+  "target": {
+    "minutes": 12,
+    "minSeconds": 660,
+    "maxSeconds": 780,
+    "wordsMin": 1650,
+    "wordsMax": 1850,
+    "sceneSecondsMin": 8,
+    "sceneSecondsMax": 15
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "maxWebSearches": 25
+  },
+  "voice": {
+    "provider": "elevenlabs",
+    "voiceId": "JBFqnCBsd6RMkjVDRZzb",
+    "modelId": "eleven_multilingual_v2",
+    "languageCode": "es",
+    "stability": 0.5,
+    "similarityBoost": 0.75,
+    "style": 0.15,
+    "speed": 1.0,
+    "outputFormat": "mp3_44100_128",
+    "pauseSeconds": 0.9,
+    "sceneGapSeconds": 0.35
+  },
+  "images": {
+    "provider": "fal",
+    "model": "fal-ai/flux-2",
+    "width": 2048,
+    "height": 1152,
+    "concurrency": 4,
+    "styleBible": "ilustración digital pintada a mano, estilo grabado antiguo con texturas de papel envejecido, paleta oscura de negros, sepias y un acento rojo oscuro, iluminación de claroscuro, atmósfera inquietante, sin texto",
+    "styleBibleEn": "hand-painted digital illustration in the style of an antique engraving, aged paper texture, dark palette of blacks and sepia with a single deep crimson accent, chiaroscuro lighting, unsettling atmosphere, no text, no letters, no watermark",
+    "negative": "no gore, no blood, no corpses, no nudity, no photorealism, no modern objects, no text",
+    "thumbnailBoost": "higher contrast, bold silhouette, strong rim light, dramatic composition, single clear focal subject, readable at small size"
+  },
+  "music": {
+    "provider": "elevenlabs",
+    "modelId": "music_v2_5",
+    "basePrompt": "dark ambient documental, drones graves, piano lejano, tensión contenida, sin voces, sin percusión marcada",
+    "trackSeconds": 300,
+    "fallbackDir": "assets/music",
+    "duckDb": 20,
+    "musicFreeLufs": -24,
+    "voiceLufs": -16,
+    "finalLufs": -14,
+    "commercialUseConfirmed": false
+  },
+  "sfx": {
+    "enabled": false,
+    "modelId": "eleven_text_to_sound_v3",
+    "maxPerEpisode": 6
+  },
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "introSeconds": 3,
+    "outroSeconds": 10,
+    "crossfadeSeconds": 0.5,
+    "subtitleMaxCharsPerLine": 42
+  },
+  "shorts": {
+    "count": 3,
+    "minSeconds": 40,
+    "maxSeconds": 58
+  },
+  "pricing": {
+    "note": "Precios aproximados en USD; revísalos en las webs de cada proveedor",
+    "elevenlabsTtsPer1kChars": 0.18,
+    "elevenlabsMusicPerMinute": 0.8,
+    "elevenlabsSfxPerGeneration": 0.04,
+    "falPerImage": 0.035,
+    "anthropicInputPerMTok": 4.0,
+    "anthropicOutputPerMTok": 20.0,
+    "anthropicWebSearchPer1k": 10.0
+  }
+}
