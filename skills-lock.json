@@ -1,0 +1,61 @@
+{
+  "version": 2,
+  "skills": {
+    "fal-media": {
+      "source": "fal-ai-community/skills",
+      "commit": "ca79376d624d244e601f9182fa80b5bf66efec9c",
+      "sourceType": "github",
+      "skillPath": "skills/fal-media/SKILL.md",
+      "computedHash": "5cac65cc73cd7ca4eb876cdd23aeb794de81016fe3f44480a6fac0a7c9146073",
+      "installMode": "copy"
+    },
+    "fal-models-catalog": {
+      "source": "fal-ai-community/skills",
+      "commit": "ca79376d624d244e601f9182fa80b5bf66efec9c",
+      "sourceType": "github",
+      "skillPath": "skills/fal-models-catalog/SKILL.md",
+      "computedHash": "f072cb42cb7a0a4967d7fce5fc868a3d8ad5fb938a8ff9887d48f740b4feff28",
+      "installMode": "copy"
+    },
+    "fal-prompting": {
+      "source": "fal-ai-community/skills",
+      "commit": "ca79376d624d244e601f9182fa80b5bf66efec9c",
+      "sourceType": "github",
+      "skillPath": "skills/fal-prompting/SKILL.md",
+      "computedHash": "578b92d4a48defb17ebf974b71690ad0c13114e0aa330467d30fa5c7df4bfed6",
+      "installMode": "copy"
+    },
+    "music": {
+      "source": "elevenlabs/skills",
+      "commit": "64271c12b46efb7c9a0b65c8ec521683bb35fc4a",
+      "sourceType": "github",
+      "skillPath": "music/SKILL.md",
+      "computedHash": "526c5156d1c711c459c6ad8688a8bee245a6605545a59c0c46decc948337a701",
+      "installMode": "copy"
+    },
+    "sound-effects": {
+      "source": "elevenlabs/skills",
+      "commit": "64271c12b46efb7c9a0b65c8ec521683bb35fc4a",
+      "sourceType": "github",
+      "skillPath": "sound-effects/SKILL.md",
+      "computedHash": "5c0a1d653194633986f9887c599f3f98c595bce0fcb0e16dc5d90935ec65a6df",
+      "installMode": "copy"
+    },
+    "speech-to-text": {
+      "source": "elevenlabs/skills",
+      "commit": "64271c12b46efb7c9a0b65c8ec521683bb35fc4a",
+      "sourceType": "github",
+      "skillPath": "speech-to-text/SKILL.md",
+      "computedHash": "14e6d7fc6af68398e89a0a40a83b01e9a992e1d81815e63523a75848a9bccd5c",
+      "installMode": "copy"
+    },
+    "text-to-speech": {
+      "source": "elevenlabs/skills",
+      "commit": "64271c12b46efb7c9a0b65c8ec521683bb35fc4a",
+      "sourceType": "github",
+      "skillPath": "text-to-speech/SKILL.md",
+      "computedHash": "fec523d1f12af3c06c94783129f2d556fafc9309ee3f13578170f7ef33c5f97e",
+      "installMode": "copy"
+    }
+  }
+}

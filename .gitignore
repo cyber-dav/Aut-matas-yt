@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.DS_Store
+out/
+# Salidas pesadas de cada episodio (se regeneran)
+episodes/*/04-audio/
+episodes/*/05-images/
+episodes/*/06-render/
+episodes/*/07-thumbnail/
+episodes/*/09-shorts/
+episodes/*/.cache/
+public/ep/
