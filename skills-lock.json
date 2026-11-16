@@ -25,6 +25,14 @@
       "computedHash": "578b92d4a48defb17ebf974b71690ad0c13114e0aa330467d30fa5c7df4bfed6",
       "installMode": "copy"
     },
+    "media-use": {
+      "source": "heygen-com/hyperframes",
+      "commit": "33e1a36a3973dd587a2921575b0d399fb066d740",
+      "sourceType": "github",
+      "skillPath": "skills/media-use/SKILL.md",
+      "computedHash": "15fb820928d4da285e29b7baf7e7edddbd9fe5fbf177ff2532d0679c147c341f",
+      "installMode": "copy"
+    },
     "music": {
       "source": "elevenlabs/skills",
       "commit": "64271c12b46efb7c9a0b65c8ec521683bb35fc4a",

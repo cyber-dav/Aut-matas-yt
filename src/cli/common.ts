@@ -36,6 +36,7 @@ export function keysFor(stageNames: string[]): string[] {
 export async function main(fn: () => Promise<void>) {
   try {
     await fn();
+    process.exit(0); // cierra procesos auxiliares (p. ej. Kokoro)
   } catch (err) {
     console.error(`\n✗ ${(err as Error).message}`);
     if (process.env.DEBUG) console.error(err);

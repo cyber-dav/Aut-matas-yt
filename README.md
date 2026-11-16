@@ -6,12 +6,13 @@ Convierte un tema histórico en un vídeo de YouTube de ~12 min listo para subir
 
 - Node.js ≥ 20 y **ffmpeg** (con `ffprobe`) en el PATH.
 - Remotion descarga su navegador (Chrome Headless Shell) la primera vez que renderiza. Si tu red no lo permite, indica uno con `REMOTION_BROWSER_EXECUTABLE`.
+- **Voz local (por defecto): Kokoro-82M**, el motor de la skill `media-use` de HyperFrames: gratis, sin clave y sin conexión una vez descargado (~350 MB). Necesita Python ≥ 3.10 y `espeak-ng`. Para instalarlo: `npm run setup:voice`.
 - Cuentas y claves de API:
 
 | Variable | Para qué | Dónde |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Investigación con búsqueda web, guion, escenas, miniaturas (texto), metadatos y selección de Shorts | console.anthropic.com |
-| `ELEVENLABS_API_KEY` | Voz con timestamps, música y efectos | elevenlabs.io → Profile → API keys |
+| `ELEVENLABS_API_KEY` | Música y efectos (y voz, si eliges `voice.provider: "elevenlabs"`) | elevenlabs.io → Profile → API keys |
 | `FAL_KEY` | Ilustraciones (Flux 2) | fal.ai → Dashboard → Keys |
 
 ```bash
@@ -70,7 +71,11 @@ Se versionan en git los textos (brief, investigación, guion, escenas, metadatos
 ## Cómo funciona (resumen técnico)
 
 - **Investigación / guion / escenas**: API de Claude (`claude-opus-5-5`, pensamiento adaptativo) con búsqueda web en servidor. Las escenas salen como JSON validado con Zod. El guion se reintenta si no cae en el rango de palabras.
-- **Voz**: ElevenLabs `convertWithTimestamps` por escena. Las `[pausa]` se convierten en silencios reales (`voice.pauseSeconds`) y se envían `previous_text`/`next_text` para que la entonación sea continua. A partir de los timestamps por carácter se calculan las palabras, los subtítulos y la duración real de cada escena. Al terminar avisa si el vídeo no cae entre 11:00 y 13:00 y propone cuántas palabras recortar o añadir.
+- **Voz**: dos proveedores con la misma interfaz (`voice.provider`):
+  - `kokoro` (por defecto): local y gratis, voces en español `em_alex`, `em_santa` y `ef_dora`. Como Kokoro no da timestamps, se sintetiza frase a frase (los límites de frase son exactos) y las palabras se reparten dentro de la zona con voz de cada frase.
+  - `elevenlabs`: más natural, con `convertWithTimestamps` por escena.
+
+  Con cualquiera de los dos: Las `[pausa]` se convierten en silencios reales (`voice.pauseSeconds`) y se envían `previous_text`/`next_text` para que la entonación sea continua. A partir de los timestamps por carácter se calculan las palabras, los subtítulos y la duración real de cada escena. Al terminar avisa si el vídeo no cae entre 11:00 y 13:00 y propone cuántas palabras recortar o añadir.
 - **Imágenes**: interfaz `ImageProvider` (`src/providers/image/`). fal.ai es el proveedor por defecto; para cambiarlo, añade una clase y cámbialo en `config/channel.json`. La biblia de estilo y las prohibiciones se añaden a todos los prompts. Hay concurrencia limitada y reintentos.
 - **Música**: ElevenLabs Music (instrumental, 5 min) en bucle con fundido cruzado. Si falla, usa una pista de `assets/music/`.
 - **Mezcla** (ffmpeg): la voz se normaliza en dos pasadas. La música baja **20 dB respecto a la voz** mientras se narra, con una envolvente calculada a partir de los tiempos reales, y suena más en la intro y la outro. El resultado final queda a **−14 LUFS**, con pico real ≤ −1,5 dBTP.
@@ -81,7 +86,7 @@ Se versionan en git los textos (brief, investigación, guion, escenas, metadatos
 
 Nombre del canal, voz (`voiceId`, modelo, estabilidad, velocidad), biblia de estilo visual, prompt base de la música, duración objetivo, rango de palabras, tipografías y colores (en `remotion/components/Text.tsx`) y precios para la estimación de costes.
 
-> ⚠ El nombre del canal («Crónicas Oscuras») y la voz (George, `JBFqnCBsd6RMkjVDRZzb`) son **provisionales**. Cámbialos por los tuyos. Para la voz en castellano, elige en la Voice Library una voz nativa de España.
+> ⚠ El nombre del canal («Crónicas Oscuras») es **provisional**. Voz: Kokoro `em_alex` a velocidad 0,95 (alternativas: `em_santa`, `ef_dora`). Si pasas a ElevenLabs, elige una voz nativa de España y pon su `voiceId`.
 
 **Música y monetización**: `music.commercialUseConfirmed` está en `false`. Antes de monetizar, comprueba en las condiciones de ElevenLabs que tu plan permite el uso comercial de la música generada y cámbialo a `true`. Mientras siga en `false`, el pipeline te avisa en cada episodio.
 
@@ -90,10 +95,11 @@ Nombre del canal, voz (`voiceId`, modelo, estabilidad, velocidad), biblia de est
 | Concepto | Estimación |
 |---|---|
 | Claude: investigación (≈25 búsquedas) + guion + escenas + metadatos/Shorts/miniaturas | 2 – 4 |
-| ElevenLabs voz (≈11.000 caracteres) | 1,5 – 3 (o créditos de tu suscripción) |
+| Voz: Kokoro local (por defecto) | 0 |
+| Voz con ElevenLabs (≈11.000 caracteres), si la eliges | 1,5 – 3 (o créditos de tu suscripción) |
 | ElevenLabs música (5 min) | 2 – 4 (según plan) |
 | fal.ai Flux 2 (≈45–55 ilustraciones + 3 fondos de miniatura) | 1,5 – 2,5 |
-| **Total** | **≈ 7 – 13** |
+| **Total** | **≈ 5 – 10** con Kokoro (≈ 7 – 13 con voz de ElevenLabs) |
 
 Las cifras reales de cada episodio quedan en `cost.json` y en `QA.md`. Los precios de referencia están en `config/channel.json → pricing`; actualízalos con los de tu plan.
 
@@ -110,4 +116,4 @@ En una máquina de 4 núcleos sin GPU, el render de 12 min tarda unos 16 min (~2
 
 ## Skills de Claude Code instaladas (`.claude/skills/`)
 
-`text-to-speech`, `speech-to-text`, `music` y `sound-effects` (de elevenlabs/skills), y `fal-models-catalog`, `fal-prompting` y `fal-media` (de fal-ai-community/skills). La skill `fal-generate` que pedía el encargo no existe en ese repositorio. Son solo instrucciones en Markdown, sin scripts. Las versiones están fijadas en `skills-lock.json`.
+`media-use` (de heygen-com/hyperframes; su motor Kokoro es el que usa la voz local), `text-to-speech`, `speech-to-text`, `music` y `sound-effects` (de elevenlabs/skills), y `fal-models-catalog`, `fal-prompting` y `fal-media` (de fal-ai-community/skills). La skill `fal-generate` que pedía el encargo no existe en ese repositorio. Son solo instrucciones en Markdown, sin scripts. Las versiones están fijadas en `skills-lock.json`.

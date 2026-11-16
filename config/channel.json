@@ -22,7 +22,13 @@
     "maxWebSearches": 25
   },
   "voice": {
-    "provider": "elevenlabs",
+    "provider": "kokoro",
+    "kokoro": {
+      "voice": "em_alex",
+      "speed": 0.95,
+      "lang": "es",
+      "modelDir": "~/.cache/kokoro"
+    },
     "voiceId": "JBFqnCBsd6RMkjVDRZzb",
     "modelId": "eleven_multilingual_v2",
     "languageCode": "es",

@@ -30,7 +30,7 @@ export const voiceStage: Stage = {
       ctx.scene ? s.id === ctx.scene : ctx.force || !existsSync(paths.audioScene(s.id)) || !existsSync(paths.audioSceneTs(s.id)),
     );
     if (!ctx.scene && ctx.force) cost.reset("voice");
-    log.info(`Generando voz de ${todo.length}/${file.scenes.length} escenas (${cfg.voice.provider}, ${cfg.voice.modelId})`);
+    log.info(`Generando voz de ${todo.length}/${file.scenes.length} escenas (${cfg.voice.provider}, ${cfg.voice.provider === "kokoro" ? cfg.voice.kokoro.voice : cfg.voice.modelId})`);
 
     const limit = pLimit(3);
     let done = 0;
@@ -49,11 +49,11 @@ export const voiceStage: Stage = {
     if (todo.length) {
       const chars = todo.reduce((a, s) => a + cleanText(s.narration).length, 0);
       cost.add("voice", {
-        provider: "elevenlabs",
-        description: `TTS ${cfg.voice.modelId} (${todo.length} escenas)`,
+        provider: cfg.voice.provider,
+        description: `TTS ${cfg.voice.provider === "kokoro" ? `kokoro ${cfg.voice.kokoro.voice}` : cfg.voice.modelId} (${todo.length} escenas)`,
         quantity: chars,
         unit: "caracteres",
-        usd: cfg.voice.provider === "mock" ? 0 : (chars / 1000) * cfg.pricing.elevenlabsTtsPer1kChars,
+        usd: cfg.voice.provider !== "elevenlabs" ? 0 : (chars / 1000) * cfg.pricing.elevenlabsTtsPer1kChars,
       });
     }
     await buildNarration(ctx, file);
@@ -84,10 +84,10 @@ async function synthesizeScene(
       previousText: [cleanText(prev ?? ""), ...parts.slice(0, i)].join(" ").trim() || undefined,
       nextText: [...parts.slice(i + 1), cleanText(next ?? "")].join(" ").trim() || undefined,
     });
-    const mp3 = join(tmpDir, `part-${i}.mp3`);
+    const raw = join(tmpDir, `part-${i}.raw.${res.format}`);
     const wav = join(tmpDir, `part-${i}.wav`);
-    writeFileSync(mp3, res.audio);
-    await ffmpeg(["-i", mp3, "-ar", "44100", "-ac", "1", wav]);
+    writeFileSync(raw, res.audio);
+    await ffmpeg(["-i", raw, "-ar", "44100", "-ac", "1", wav]);
     const dur = await durationOf(wav);
     words.push(...alignmentToWords(res.alignment, offset));
     pieces.push(wav);

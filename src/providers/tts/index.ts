@@ -5,6 +5,7 @@ import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 import type { ChannelConfig } from "../../core/config.js";
 import { ffmpeg } from "../../core/ffmpeg.js";
 import { retry } from "../../core/util.js";
+import { KokoroTts } from "./kokoro.js";
 
 export interface Alignment {
   characters: string[];
@@ -13,7 +14,8 @@ export interface Alignment {
 }
 
 export interface TtsResult {
-  audio: Buffer; // mp3
+  audio: Buffer;
+  format: "mp3" | "wav";
   alignment: Alignment;
   billedChars: number;
 }
@@ -49,6 +51,7 @@ class ElevenLabsTts implements TtsProvider {
     if (!a) throw new Error("ElevenLabs no devolvió timestamps (alignment)");
     return {
       audio: Buffer.from(res.audioBase64, "base64"),
+      format: "mp3",
       alignment: { characters: a.characters, starts: a.characterStartTimesSeconds, ends: a.characterEndTimesSeconds },
       billedChars: text.length,
     };
@@ -71,6 +74,7 @@ class MockTts implements TtsProvider {
     const step = dur / Math.max(1, characters.length);
     return {
       audio,
+      format: "mp3",
       alignment: {
         characters,
         starts: characters.map((_, i) => i * step),
@@ -82,5 +86,12 @@ class MockTts implements TtsProvider {
 }
 
 export function getTts(cfg: ChannelConfig): TtsProvider {
-  return cfg.voice.provider === "mock" ? new MockTts() : new ElevenLabsTts(cfg);
+  switch (cfg.voice.provider) {
+    case "mock":
+      return new MockTts();
+    case "kokoro":
+      return new KokoroTts(cfg);
+    case "elevenlabs":
+      return new ElevenLabsTts(cfg);
+  }
 }

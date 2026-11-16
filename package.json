@@ -11,7 +11,8 @@
     "studio": "remotion studio remotion/index.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p remotion",
     "test": "tsx --test src/core/*.test.ts",
-    "test:e2e": "rm -rf episodes/prueba-mock && cp -r test/fixture-mock episodes/prueba-mock && PIPELINE_MOCK=1 tsx src/cli/produce.ts prueba-mock || true"
+    "test:e2e": "rm -rf episodes/prueba-mock && cp -r test/fixture-mock episodes/prueba-mock && PIPELINE_MOCK=1 tsx src/cli/produce.ts prueba-mock || true",
+    "setup:voice": "bash scripts/setup-kokoro.sh"
   },
   "engines": {
     "node": ">=20"
