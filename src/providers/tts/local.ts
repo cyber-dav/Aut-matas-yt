@@ -1,7 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { createInterface } from "node:readline";
 import type { ChannelConfig } from "../../core/config.js";
 import { ffmpeg } from "../../core/ffmpeg.js";
@@ -16,60 +16,74 @@ interface WorkerReply {
   speech_end: number;
 }
 
+interface WorkerSpec {
+  label: string;
+  python: string;
+  script: string;
+  env: Record<string, string>;
+  /** Campos extra de cada petición (voz, velocidad…). */
+  extra: Record<string, unknown>;
+  /** Comprueba el mensaje inicial del worker; devuelve un error o null. */
+  checkReady?: (msg: Record<string, unknown>) => string | null;
+  installHint: string;
+}
+
 /**
- * Voz local con Kokoro-82M (el motor de la skill media-use de HyperFrames): gratis, sin clave, sin red.
- * Kokoro no devuelve timestamps, así que se sintetiza frase a frase: los límites de frase son exactos
- * y dentro de cada frase las letras se reparten en la zona con voz (sin silencios de los extremos).
+ * TTS local en un proceso Python persistente (el modelo se carga una vez).
+ * Estos motores no dan timestamps: se sintetiza frase a frase (límites de frase exactos) y las letras
+ * se reparten dentro de la zona con voz de cada frase.
  */
-export class KokoroTts implements TtsProvider {
+class LocalWorkerTts implements TtsProvider {
   private proc?: ChildProcessWithoutNullStreams;
   private queue: ((r: WorkerReply) => void)[] = [];
   private ready?: Promise<void>;
   private chain: Promise<unknown> = Promise.resolve();
 
-  constructor(private cfg: ChannelConfig) {
+  constructor(private spec: WorkerSpec) {
     process.once("exit", () => this.proc?.kill());
   }
 
   private start(): Promise<void> {
     if (this.ready) return this.ready;
     this.ready = new Promise((resolve, reject) => {
-      const python = process.env.KOKORO_PYTHON || "python3";
-      const proc = spawn(python, ["-I", join(ROOT, "scripts", "kokoro_worker.py")], {
-        env: { ...process.env, KOKORO_MODEL_DIR: this.cfg.voice.kokoro.modelDir.replace(/^~/, process.env.HOME ?? "") },
+      const proc = spawn(this.spec.python, ["-I", join(ROOT, "scripts", this.spec.script)], {
+        env: { ...process.env, ...this.spec.env },
       });
       this.proc = proc;
       let stderr = "";
       proc.stderr.on("data", (d) => (stderr += d));
       proc.on("exit", (code) => {
-        if (code) reject(new Error(`Kokoro terminó con código ${code}. ¿Instalaste «pip install kokoro-onnx soundfile» y el modelo? ${stderr.slice(-800)}`));
+        if (code) reject(new Error(`${this.spec.label} terminó con código ${code}. ${this.spec.installHint}\n${stderr.slice(-1200)}`));
       });
       const rl = createInterface({ input: proc.stdout });
       let first = true;
       rl.on("line", (line) => {
-        const msg = JSON.parse(line);
+        let msg: Record<string, unknown>;
+        try {
+          msg = JSON.parse(line);
+        } catch {
+          return; // líneas de log de librerías
+        }
         if (first) {
           first = false;
-          const voice = this.cfg.voice.kokoro.voice;
-          if (!msg.voices.includes(voice)) reject(new Error(`La voz Kokoro «${voice}» no existe. Españolas: ${msg.voices.filter((v: string) => v.startsWith("e")).join(", ")}`));
+          const err = this.spec.checkReady?.(msg) ?? null;
+          if (err) reject(new Error(err));
           else resolve();
           return;
         }
-        this.queue.shift()?.(msg);
+        this.queue.shift()?.(msg as unknown as WorkerReply);
       });
     });
     return this.ready;
   }
 
   private request(text: string, out: string): Promise<WorkerReply> {
-    // Un único proceso Python atiende las peticiones en orden.
     const run = async () => {
       await this.start();
-      const k = this.cfg.voice.kokoro;
       const reply = new Promise<WorkerReply>((res) => this.queue.push(res));
-      this.proc!.stdin.write(JSON.stringify({ text, voice: k.voice, speed: k.speed, lang: k.lang, out }) + "\n");
+      this.proc!.stdin.write(JSON.stringify({ text, out, ...this.spec.extra }) + "\n");
       const r = await reply;
-      if (!r.ok) throw new Error(`Kokoro: ${r.error}`);
+      if (!r.ok) throw new Error(`${this.spec.label}: ${r.error}`);
       return r;
     };
     const p = this.chain.then(run, run);
@@ -79,7 +93,7 @@ export class KokoroTts implements TtsProvider {
 
   async synthesize(text: string): Promise<TtsResult> {
     const chunks = splitSentences(text);
-    const dir = mkdtempSync(join(tmpdir(), "kokoro-"));
+    const dir = mkdtempSync(join(tmpdir(), "localtts-"));
     try {
       const characters: string[] = [];
       const starts: number[] = [];
@@ -110,13 +124,51 @@ export class KokoroTts implements TtsProvider {
   }
 }
 
+const home = (p: string) => p.replace(/^~/, process.env.HOME ?? "");
+const fromRoot = (p: string) => (isAbsolute(p) ? p : join(ROOT, p));
+
+/** Kokoro-82M (motor de la skill media-use de HyperFrames). */
+export function kokoroTts(cfg: ChannelConfig): TtsProvider {
+  const k = cfg.voice.kokoro;
+  return new LocalWorkerTts({
+    label: "Kokoro",
+    python: process.env.KOKORO_PYTHON || "python3",
+    script: "kokoro_worker.py",
+    env: { KOKORO_MODEL_DIR: home(k.modelDir) },
+    extra: { voice: k.voice, speed: k.speed, lang: k.lang },
+    checkReady: (msg) => {
+      const voices = msg.voices as string[];
+      return voices.includes(k.voice) ? null : `La voz Kokoro «${k.voice}» no existe. Españolas: ${voices.filter((v) => v.startsWith("e")).join(", ")}`;
+    },
+    installHint: "Instala con «npm run setup:voice».",
+  });
+}
+
+/** Qwen3-TTS (skill qwen3-tts-mlx): clona la voz del narrador diseñada con «npm run voice:design». */
+export function qwen3Tts(cfg: ChannelConfig): TtsProvider {
+  const q = cfg.voice.qwen3;
+  const ref = fromRoot(q.refAudio);
+  const refText = ref.replace(/\.wav$/, ".txt");
+  if (!existsSync(ref) || !existsSync(refText)) {
+    throw new Error(`Falta la voz de referencia ${q.refAudio} (+ .txt). Créala con «npm run voice:design».`);
+  }
+  return new LocalWorkerTts({
+    label: "Qwen3-TTS",
+    python: home(process.env.QWEN3_PYTHON || q.python),
+    script: "qwen3_worker.py",
+    env: { QWEN3_MODEL: q.model, QWEN3_REF_AUDIO: ref, QWEN3_REF_TEXT: refText, QWEN3_LANGUAGE: q.language, QWEN3_SEED: String(q.seed) },
+    extra: {},
+    installHint: "Instala con «npm run setup:voice:qwen3».",
+  });
+}
+
 function pushChar(c: string[], s: number[], e: number[], ch: string, a: number, b: number) {
   c.push(ch);
   s.push(a);
   e.push(b);
 }
 
-/** Divide en frases (y frases muy largas por comas) para que Kokoro no supere su límite de fonemas. */
+/** Divide en frases (y frases muy largas por comas) para no superar el límite de los modelos. */
 export function splitSentences(text: string, max = 260): string[] {
   const sentences = text
     .replace(/\s+/g, " ")

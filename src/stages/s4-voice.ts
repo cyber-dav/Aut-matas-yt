@@ -30,7 +30,7 @@ export const voiceStage: Stage = {
       ctx.scene ? s.id === ctx.scene : ctx.force || !existsSync(paths.audioScene(s.id)) || !existsSync(paths.audioSceneTs(s.id)),
     );
     if (!ctx.scene && ctx.force) cost.reset("voice");
-    log.info(`Generando voz de ${todo.length}/${file.scenes.length} escenas (${cfg.voice.provider}, ${cfg.voice.provider === "kokoro" ? cfg.voice.kokoro.voice : cfg.voice.modelId})`);
+    log.info(`Generando voz de ${todo.length}/${file.scenes.length} escenas (${cfg.voice.provider}, ${voiceLabel(cfg)})`);
 
     const limit = pLimit(3);
     let done = 0;
@@ -50,7 +50,7 @@ export const voiceStage: Stage = {
       const chars = todo.reduce((a, s) => a + cleanText(s.narration).length, 0);
       cost.add("voice", {
         provider: cfg.voice.provider,
-        description: `TTS ${cfg.voice.provider === "kokoro" ? `kokoro ${cfg.voice.kokoro.voice}` : cfg.voice.modelId} (${todo.length} escenas)`,
+        description: `TTS ${voiceLabel(cfg)} (${todo.length} escenas)`,
         quantity: chars,
         unit: "caracteres",
         usd: cfg.voice.provider !== "elevenlabs" ? 0 : (chars / 1000) * cfg.pricing.elevenlabsTtsPer1kChars,
@@ -59,6 +59,12 @@ export const voiceStage: Stage = {
     await buildNarration(ctx, file);
   },
 };
+
+function voiceLabel(cfg: StageCtx["cfg"]): string {
+  if (cfg.voice.provider === "kokoro") return `kokoro ${cfg.voice.kokoro.voice}`;
+  if (cfg.voice.provider === "qwen3") return `qwen3 (clon de ${cfg.voice.qwen3.refAudio})`;
+  return cfg.voice.modelId;
+}
 
 const cleanText = (t: string) => t.replace(/\[pausa\]/gi, " ").replace(/\s+/g, " ").trim();
 

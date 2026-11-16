@@ -27,7 +27,16 @@ const ChannelConfig = z.object({
     maxWebSearches: z.number(),
   }),
   voice: z.object({
-    provider: z.enum(["kokoro", "elevenlabs", "mock"]),
+    provider: z.enum(["qwen3", "kokoro", "elevenlabs", "mock"]),
+    qwen3: z.object({
+      python: z.string(),
+      model: z.string(),
+      designModel: z.string(),
+      language: z.string(),
+      refAudio: z.string(),
+      voiceDescription: z.string(),
+      seed: z.number(),
+    }),
     kokoro: z.object({ voice: z.string(), speed: z.number(), lang: z.string(), modelDir: z.string() }),
     voiceId: z.string(),
     modelId: z.string(),
@@ -103,7 +112,7 @@ export function loadConfig(): ChannelConfig {
   const raw = JSON.parse(readFileSync(join(ROOT, "config", "channel.json"), "utf8"));
   const cfg = ChannelConfig.parse(raw);
   if (process.env.PIPELINE_MOCK === "1") {
-    if (cfg.voice.provider !== "kokoro") cfg.voice.provider = "mock"; // Kokoro es local y gratuito: se mantiene
+    if (cfg.voice.provider === "elevenlabs") cfg.voice.provider = "mock"; // las voces locales (gratis) se mantienen
     cfg.images.provider = "mock";
     cfg.music.provider = "library";
   }

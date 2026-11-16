@@ -5,7 +5,7 @@ import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 import type { ChannelConfig } from "../../core/config.js";
 import { ffmpeg } from "../../core/ffmpeg.js";
 import { retry } from "../../core/util.js";
-import { KokoroTts } from "./kokoro.js";
+import { kokoroTts, qwen3Tts } from "./local.js";
 
 export interface Alignment {
   characters: string[];
@@ -90,7 +90,9 @@ export function getTts(cfg: ChannelConfig): TtsProvider {
     case "mock":
       return new MockTts();
     case "kokoro":
-      return new KokoroTts(cfg);
+      return kokoroTts(cfg);
+    case "qwen3":
+      return qwen3Tts(cfg);
     case "elevenlabs":
       return new ElevenLabsTts(cfg);
   }

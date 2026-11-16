@@ -41,6 +41,14 @@
       "computedHash": "526c5156d1c711c459c6ad8688a8bee245a6605545a59c0c46decc948337a701",
       "installMode": "copy"
     },
+    "qwen3-tts-mlx": {
+      "source": "agiseek/agent-skills",
+      "commit": "84714cd314073a8a0c1ce419f02ede19c5c44e5e",
+      "sourceType": "github",
+      "skillPath": "skills/qwen3-tts-mlx/SKILL.md",
+      "computedHash": "71f26877be3de9373ebd6a73674caf77a07bea4cd26cf632656eb3020d983c7a",
+      "installMode": "copy"
+    },
     "sound-effects": {
       "source": "elevenlabs/skills",
       "commit": "64271c12b46efb7c9a0b65c8ec521683bb35fc4a",

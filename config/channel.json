@@ -22,7 +22,16 @@
     "maxWebSearches": 25
   },
   "voice": {
-    "provider": "kokoro",
+    "provider": "qwen3",
+    "qwen3": {
+      "python": "~/.venvs/qwen3tts/bin/python",
+      "model": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+      "designModel": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "language": "Spanish",
+      "refAudio": "assets/voice/narrador.wav",
+      "voiceDescription": "Mature male documentary narrator, around 65 years old, from Spain (Castilian accent). Extremely deep and rich baritone-bass voice, velvety and warm, gentle and affectionate tone, mysterious but comforting. Measured pace, crisp pronunciation, very clear and easy to understand.",
+      "seed": 1234
+    },
     "kokoro": {
       "voice": "em_alex",
       "speed": 0.95,

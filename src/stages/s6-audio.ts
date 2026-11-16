@@ -68,9 +68,12 @@ async function mixEpisodeAudio(ctx: StageCtx) {
 
   // 1) Voz normalizada (dos pasadas) y desplazada tras la intro.
   const voice = join(tmp, "voice.wav");
-  const vf = await loudnormFilter(paths.narration, cfg.music.voiceLufs);
+  // Compresión suave de narración: iguala el nivel y baja los picos de voces muy graves.
+  const voiceComp = join(tmp, "voice-comp.wav");
+  await ffmpeg(["-i", paths.narration, "-af", VOICE_CHAIN, "-ar", "44100", "-ac", "1", voiceComp]);
+  const vf = await loudnormFilter(voiceComp, cfg.music.voiceLufs);
   await ffmpeg([
-    "-i", paths.narration,
+    "-i", voiceComp,
     "-af", `${vf},aresample=48000,adelay=${Math.round(intro * 1000)}:all=1,apad=whole_dur=${total.toFixed(3)}`,
     "-ac", "2", "-ar", "48000", "-t", total.toFixed(3), voice,
   ]);
@@ -122,11 +125,23 @@ async function mixEpisodeAudio(ctx: StageCtx) {
     "-filter_complex", [...sfxChains, `${mixIns}amix=inputs=${2 + sfxInputs.length}:normalize=0:duration=first[out]`].join(";"),
     "-map", "[out]", "-ar", "48000", "-ac", "2", pre,
   ]);
-  const fin = await loudnormFilter(pre, cfg.music.finalLufs, -1.5);
-  await ffmpeg(["-i", pre, "-af", `${fin},aresample=48000`, "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", paths.mix]);
+  // Normalización final: ganancia + limitador (pico real ≤ −1,5 dBTP), medir y corregir el resto.
+  // loudnorm por sí solo se queda corto cuando los picos de una voz muy grave no le dejan subir.
+  let src = pre;
+  for (let pass = 1; pass <= 3; pass++) {
+    const m = await measureLoudness(src);
+    const gain = cfg.music.finalLufs - m.integrated;
+    if (pass > 1 && Math.abs(gain) < 0.3) break;
+    const next = join(tmp, `final-${pass}.wav`);
+    await ffmpeg(["-i", src, "-af", `volume=${gain.toFixed(2)}dB,alimiter=limit=0.79:attack=4:release=60:level=false`, "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", next]);
+    src = next;
+  }
+  await ffmpeg(["-i", src, "-c:a", "pcm_s16le", paths.mix]);
   const l = await measureLoudness(paths.mix);
   log.ok(`mix.wav: ${(await durationOf(paths.mix)).toFixed(1)} s, ${l.integrated} LUFS, pico ${l.truePeak} dBTP (música −${duckReduction.toFixed(0)} dB bajo la voz)`);
 }
+
+const VOICE_CHAIN = "highpass=f=60,acompressor=threshold=-20dB:ratio=3:attack=15:release=250:makeup=2";
 
 /** Repite la pista con fundidos cruzados de 4 s hasta alcanzar `seconds`. */
 export async function loopMusic(src: string, seconds: number, out: string, tmp: string) {

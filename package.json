@@ -10,9 +10,11 @@
     "stage": "tsx src/cli/stage.ts",
     "studio": "remotion studio remotion/index.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p remotion",
-    "test": "tsx --test src/core/*.test.ts",
+    "test": "tsx --test src/core/*.test.ts src/providers/tts/*.test.ts",
     "test:e2e": "rm -rf episodes/prueba-mock && cp -r test/fixture-mock episodes/prueba-mock && PIPELINE_MOCK=1 tsx src/cli/produce.ts prueba-mock || true",
-    "setup:voice": "bash scripts/setup-kokoro.sh"
+    "setup:voice": "bash scripts/setup-kokoro.sh",
+    "voice:design": "tsx src/cli/voice-design.ts",
+    "setup:voice:qwen3": "bash scripts/setup-qwen3.sh"
   },
   "engines": {
     "node": ">=20"
